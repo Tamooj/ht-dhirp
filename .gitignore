@@ -1,0 +1,20 @@
+build/
+.gradle/
+.idea/
+*.iml
+local.properties
+captures/
+
+# Signing material and secrets
+*.jks
+*.keystore
+*.pem
+.env
+
+# Real radio images and dumps stay local; only synthetic fixtures are committed
+*.img
+*.bin
+!fixtures/synthetic/*.img
+!fixtures/synthetic/*.bin
+fixtures/local/*
+!fixtures/local/.gitkeep

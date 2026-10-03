@@ -1,0 +1,6 @@
+[versions]
+# Not yet verified by a first build; bump if Gradle/JDK complain.
+kotlin = "2.2.20"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
