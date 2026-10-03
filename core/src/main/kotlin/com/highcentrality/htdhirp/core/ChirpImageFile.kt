@@ -21,6 +21,10 @@ class ChirpImageFile(val data: ByteArray, val trailer: ByteArray?) {
             'p'.code.toByte(), 0xEE.toByte(), 'i'.code.toByte(), 'm'.code.toByte(), 'g'.code.toByte(), 0x00, 0x01,
         )
 
+        /** Builds a container with a fresh metadata trailer from [metadataJson]. */
+        fun create(data: ByteArray, metadataJson: String): ChirpImageFile =
+            ChirpImageFile(data.copyOf(), Base64.getEncoder().encode(metadataJson.toByteArray(Charsets.UTF_8)))
+
         fun parse(bytes: ByteArray): ChirpImageFile {
             val at = lastIndexOf(bytes, MAGIC)
             return if (at < 0) {

@@ -21,6 +21,15 @@ class ChirpImageFileTest {
     }
 
     @Test
+    fun `create builds a container that parses back`() {
+        val data = ByteArray(50) { (it * 3).toByte() }
+        val json = """{"vendor": "Baofeng", "model": "5RM"}"""
+        val parsed = ChirpImageFile.parse(ChirpImageFile.create(data, json).serialize())
+        assertContentEquals(data, parsed.data)
+        assertEquals(json, parsed.metadataJson())
+    }
+
+    @Test
     fun `a file without a trailer is all data`() {
         val data = ByteArray(10) { 7 }
         val parsed = ChirpImageFile.parse(data)

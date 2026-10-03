@@ -1,6 +1,12 @@
 [versions]
-# Not yet verified by a first build; bump if Gradle/JDK complain.
+# Not all verified together yet; bump if Gradle/JDK complain.
 kotlin = "2.2.20"
+agp = "9.4.1"
+usb-serial = "3.9.0"
+
+[libraries]
+usb-serial = { module = "com.github.mik3y:usb-serial-for-android", version.ref = "usb-serial" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }

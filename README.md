@@ -29,6 +29,18 @@ Needs JDK 17 or newer (JDK 25 also works; the Kotlin target is pinned to 17). Th
 ./gradlew :core:test
 ```
 
+## Android spike (M0b)
+
+`app/` is a minimal, **read-only** Android app that connects to the cable, does the handshake, reads the radio, and saves a CHIRP-compatible `.img` to Downloads. Build it with:
+
+```bash
+./gradlew :app:assembleDebug   # needs the Android SDK (ANDROID_HOME)
+```
+
+The APK lands in `app/build/outputs/apk/debug/`. The phone's one USB-C port is busy with the programming cable, so install either by copying the APK to the phone, or over Wi-Fi with Android's *Wireless debugging* (`adb pair`, `adb connect`, then `adb install -r app-debug.apk`).
+
+Safety before testing: radio on, plug seated fully, antenna off or a dummy load attached (a radio can key its transmitter if communication goes wrong).
+
 ## Fixtures
 
 Real radio images contain personal channel lists and are never committed. Put a CHIRP `.img` in `fixtures/local/` (gitignored) or point `HT_FIXTURE_IMG` at one. Tests that need it are skipped when it is absent. Synthetic fixtures go in `fixtures/synthetic/`.
