@@ -1,5 +1,7 @@
 package com.highcentrality.htdhirp.core
 
+// The region table and image size follow CHIRP's baofeng_uv17Pro.py (https://chirpmyradio.com, GPLv3), so images
+// are interchangeable with CHIRP's .img files. No CHIRP source is copied.
 /**
  * Memory map of the Baofeng UV-5RM (CHIRP `BF5RM(UV17Pro)`).
  *

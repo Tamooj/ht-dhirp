@@ -1,5 +1,7 @@
 package com.highcentrality.htdhirp.core
 
+// Handshake and block protocol as documented by CHIRP's baofeng_uv17Pro.py (https://chirpmyradio.com, GPLv3) and
+// verified with an independent Go tool. No CHIRP source is copied.
 /** Identification bytes the radio returns during the handshake. */
 data class DeviceInfo(val info: ByteArray, val model: ByteArray) {
     val infoHex: String get() = info.joinToString(" ") { "%02X".format(it) }

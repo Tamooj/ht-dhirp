@@ -1,5 +1,7 @@
 package com.highcentrality.htdhirp.core
 
+// Channel record layout (field offsets, BCD frequencies, tone fields, name, flag bits) follows the memory
+// definition in CHIRP's baofeng_uv17Pro.py (https://chirpmyradio.com, GPLv3). No CHIRP source is copied.
 /**
  * 32-byte channel record codec (CHIRP `baofeng_uv17Pro.py`, `memory_obj`).
  *

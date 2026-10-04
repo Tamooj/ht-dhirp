@@ -1,5 +1,7 @@
 package com.highcentrality.htdhirp.core
 
+// The obfuscation scheme and key table are as used by CHIRP's baofeng_uv17Pro.py (https://chirpmyradio.com, GPLv3)
+// and by an independent Go tool verified on hardware. No CHIRP source is copied.
 /**
  * The per-block XOR obfuscation used on the UV-5RM clone link.
  * Ported from the hardware-proven bfctrl.go `Crypt`, cross-checked with CHIRP's `_crypt`.

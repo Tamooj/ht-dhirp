@@ -1,5 +1,6 @@
 package com.highcentrality.htdhirp.core
 
+// Container format compatible with CHIRP's .img files (https://chirpmyradio.com, GPLv3). No CHIRP source is copied.
 import java.util.Base64
 
 /**

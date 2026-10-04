@@ -1,0 +1,17 @@
+ht-dhirp
+Copyright (c) 2026 the ht-dhirp authors. Licensed under the GNU GPL v3 (see LICENSE).
+
+Acknowledgements
+
+CHIRP (https://chirpmyradio.com, https://github.com/kk7ds/chirp), GPLv3.
+  The memory layouts, tone encodings, clone protocol details and file formats
+  used here follow the work documented in CHIRP's radio drivers, in particular
+  chirp/drivers/baofeng_uv17Pro.py, and CHIRP's .img and CSV formats are used
+  for interchange. This project does not include CHIRP source code. Thank you to
+  the CHIRP developers and community.
+
+usb-serial-for-android (https://github.com/mik3y/usb-serial-for-android), MIT License.
+  Used by the Android app to talk to USB serial cables.
+  Copyright (c) 2011-2013 Google Inc., (c) 2013 Mike Wakerly, and contributors.
+
+Kotlin and the Android SDK are used under their respective licenses.

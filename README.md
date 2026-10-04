@@ -57,4 +57,4 @@ This project stands on the work of the [CHIRP](https://chirpmyradio.com) team an
 
 ## License
 
-GNU GPL v3 (see [LICENSE](LICENSE)). The protocol knowledge here comes partly from CHIRP's GPLv3 drivers, and the goal is to release these tools freely to the ham community.
+GNU GPL v3 (see [LICENSE](LICENSE); acknowledgements in [NOTICE](NOTICE)). The protocol knowledge here comes partly from CHIRP's GPLv3 drivers, and the goal is to release these tools freely to the ham community.

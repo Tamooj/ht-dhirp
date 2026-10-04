@@ -1,5 +1,7 @@
 package com.highcentrality.htdhirp.core
 
+// Tone field encoding follows CHIRP's baofeng_uv17Pro.py (decode_tone/encode_tone) (https://chirpmyradio.com, GPLv3).
+// No CHIRP source is copied.
 /**
  * Sub-audible tone setting for one direction of a channel.
  *

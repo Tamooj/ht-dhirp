@@ -10,7 +10,7 @@ Kotlin library (and later Android app) for programming a Baofeng UV-5RM over a U
 * Real radio images stay in `fixtures/local/` (gitignored). Never commit `.img` or `.bin` files outside `fixtures/synthetic/`.
 * No tokens, keys or credentials in the repo or in chat.
 * Commit identity is `htprog@highcentrality.com`; never use another personal address. Package namespace is `com.highcentrality.htdhirp`.
-* Credit CHIRP (https://chirpmyradio.com) in the About screen and README.
+* Credit CHIRP (https://chirpmyradio.com) in the About screen, README and NOTICE. Anything derived from CHIRP's driver knowledge is credited in the file header; record what was studied, and never paste CHIRP source without saying so.
 * Protocol reference that has run on real hardware: a local Go tool, `../baofengCtrl/bfctrl.go` (not part of this repo). The CHIRP driver is `chirp/drivers/baofeng_uv17Pro.py`.
 
 ## Layout
