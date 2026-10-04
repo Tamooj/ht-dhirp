@@ -13,7 +13,7 @@ Rough part-time estimates; protocol work against real hardware is the least pred
 
 ## Decisions pending
 
-* About screen: thank the CHIRP team and link to https://chirpmyradio.com (the CHIRP maintainers have been contacted; update this note with their reply).
+* About screen: thank the CHIRP team and link to https://chirpmyradio.com (CHIRP's lead replied: fine to proceed, but do not present the project as CHIRP; he also questioned duplicating PocketCHIRP, so the planner is the differentiator).
 
 * RepeaterBook API terms (registration, rate limits, bulk use) must be checked before the planner is designed around it. CSV import is the fallback.
 * Slot policy for imported channels: leave `Location` blank and let the programmer pick free slots, with an option to confine writes to a range.

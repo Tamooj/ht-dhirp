@@ -1,6 +1,12 @@
 ht-dhirp
 Copyright (c) 2026 the ht-dhirp authors. Licensed under the GNU GPL v3 (see LICENSE).
 
+Not CHIRP
+  ht-dhirp is an independent project. It is not CHIRP, is not affiliated with or
+  endorsed by the CHIRP project, and does not contain CHIRP code. Files it writes
+  in CHIRP's formats say so in their metadata ("generator") and do not claim to
+  have been produced by CHIRP.
+
 Acknowledgements
 
 CHIRP (https://chirpmyradio.com, https://github.com/kk7ds/chirp), GPLv3.

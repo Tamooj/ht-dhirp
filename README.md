@@ -2,6 +2,8 @@
 
 Program ham handheld radios from an Android phone over a USB-OTG serial cable. Target radio: **Baofeng UV-5RM**. The goal is a small, focused tool, not a CHIRP replacement.
 
+**ht-dhirp is not CHIRP.** It is an independent project, is not affiliated with or endorsed by the CHIRP project, and contains no CHIRP code. Where it reads or writes CHIRP's file formats, that is for interoperability only. See [NOTICE](NOTICE) for credits.
+
 ## Plan
 
 Two apps joined by a CSV file in CHIRP's CSV format:
@@ -31,7 +33,7 @@ Needs JDK 17 or newer (JDK 25 also works; the Kotlin target is pinned to 17). Th
 
 ## Android spike (M0b)
 
-`app/` is a minimal, **read-only** Android app that connects to the cable, does the handshake, reads the radio, and saves a CHIRP-compatible `.img` to Downloads. Build it with:
+`app/` is a minimal, **read-only** Android app that connects to the cable, does the handshake, reads the radio, and saves an `.img` (the file format CHIRP reads) to Downloads. Build it with:
 
 ```bash
 ./gradlew :app:assembleDebug   # needs the Android SDK (ANDROID_HOME)

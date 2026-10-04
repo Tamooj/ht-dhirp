@@ -34,7 +34,7 @@ import java.util.concurrent.Executors
 /**
  * M0b spike: prove the phone can talk to the radio. READ ONLY.
  * Connect, handshake, read the whole image, show a few decoded channels,
- * and save a CHIRP-compatible .img to Downloads for comparison on a PC.
+ * and save an .img (in the file format CHIRP reads) to Downloads for comparison on a PC.
  */
 class SpikeActivity : Activity() {
     private lateinit var usb: UsbManager
@@ -194,7 +194,7 @@ class SpikeActivity : Activity() {
             val name = "ht-dhirp_uv5rm_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.img"
             saveToDownloads(name, ChirpImageFile.create(data, METADATA_JSON).serialize())
             say("Saved Downloads/$name")
-            say("Compare it with a desktop CHIRP read of the same radio.")
+            say("Compare it with a read of the same radio made by desktop CHIRP. (If CHIRP will not open this file, tell us.)")
         } catch (e: ProtocolException) {
             say("PROTOCOL ERROR: ${e.message}")
             closePort()
@@ -235,6 +235,6 @@ class SpikeActivity : Activity() {
         const val BAUD = 115200
         const val PREVIEW_CHANNELS = 8
         const val METADATA_JSON =
-            """{"rclass": "DynamicRadioAlias", "vendor": "Baofeng", "model": "5RM", "variant": "", "chirp_version": "next-20260807"}"""
+            """{"rclass": "DynamicRadioAlias", "vendor": "Baofeng", "model": "5RM", "variant": "", "generator": "ht-dhirp 0.0.1-spike (not CHIRP)"}"""
     }
 }
