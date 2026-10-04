@@ -12,7 +12,8 @@ Acknowledgements
 CHIRP (https://chirpmyradio.com, https://github.com/kk7ds/chirp), GPLv3.
   The memory layouts, tone encodings, clone protocol details and file formats
   used here follow the work documented in CHIRP's radio drivers, in particular
-  chirp/drivers/baofeng_uv17Pro.py, and CHIRP's .img and CSV formats are used
+  chirp/drivers/baofeng_uv17Pro.py (with baofeng_common.py and chirp_common.py: DCS code list,
+  name character set, timeouts), and CHIRP's .img and CSV formats are used
   for interchange. This project does not include CHIRP source code. Thank you to
   the CHIRP developers and community.
 

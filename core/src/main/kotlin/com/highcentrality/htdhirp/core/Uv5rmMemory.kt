@@ -13,7 +13,7 @@ package com.highcentrality.htdhirp.core
  */
 object Uv5rmMemory {
     const val BLOCK_SIZE = 0x40
-    const val CHANNEL_COUNT = 999
+    const val CHANNEL_COUNT = 1000
     const val IMAGE_SIZE = 0x8380
 
     /** A contiguous span of radio addresses, stored at [imageOffset] in the packed image. */

@@ -3,6 +3,7 @@ package com.highcentrality.htdhirp.core
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -93,6 +94,52 @@ class ChannelCodecTest {
         val buf = ByteArray(ChannelCodec.RECORD_SIZE) { 0xFF.toByte() }
         ChannelCodec.encodeInto(buf, 0, Channel(162_550_000L, null, name = "NOAA WX1"))
         assertNull(ChannelCodec.decode(buf, 0).txHz)
+    }
+
+    @Test
+    fun `an all-zero TX field also means TX inhibited, and is left alone on re-encode`() {
+        val rec = hex("00 00 62 16 00 00 00 00 00 00 00 00 00 00 00 04 ff ff ff ff 57 58 31 ff ff ff ff ff ff ff ff ff")
+        assertNull(ChannelCodec.decode(rec, 0).txHz)
+        val copy = rec.copyOf()
+        ChannelCodec.encodeInto(copy, 0, ChannelCodec.decode(copy, 0))
+        assertContentEquals(rec, copy)
+    }
+
+    @Test
+    fun `names are limited to the characters the radio can show`() {
+        val buf = ByteArray(ChannelCodec.RECORD_SIZE) { 0xFF.toByte() }
+        assertFailsWith<IllegalArgumentException> {
+            ChannelCodec.encodeInto(buf, 0, Channel(146_520_000L, 146_520_000L, name = "W5_ABC"))
+        }
+        assertEquals("W5-ABC", ChannelName.sanitize("W5_ABC"))
+        assertEquals("ABCDEFGHIJKL", ChannelName.sanitize("ABCDEFGHIJKLMNOP"))
+        assertTrue(ChannelName.isValid("Austin 146.8"))
+        assertFalse(ChannelName.isValid("A|B"))
+    }
+
+    @Test
+    fun `power field is preserved, including the medium level`() {
+        val buf = ByteArray(ChannelCodec.RECORD_SIZE) { 0xFF.toByte() }
+        ChannelCodec.encodeInto(buf, 0, Channel(146_520_000L, 146_520_000L, name = "MID", powerRaw = 2))
+        assertEquals(2, ChannelCodec.decode(buf, 0).powerRaw)
+    }
+
+    @Test
+    fun `DCS table has the standard 104 codes plus 645`() {
+        assertEquals(104, DtcsCodes.STANDARD_COUNT)
+        assertEquals(105, DtcsCodes.ALL.size)
+        assertEquals(DtcsCodes.ALL, DtcsCodes.ALL.sorted())
+        assertEquals(23, Tone.Dcs.of(23).code)
+        assertEquals(Tone.Dcs(DtcsCodes.ALL.indexOf(645), reversed = true), Tone.Dcs.of(645, reversed = true))
+        assertEquals(0x69, ToneCodec.encode(Tone.Dcs(DtcsCodes.ALL.lastIndex, reversed = false)))
+    }
+
+    @Test
+    fun `slot 1000 exists`() {
+        val image = RadioImage(ByteArray(Uv5rmMemory.IMAGE_SIZE) { 0xFF.toByte() })
+        assertEquals(1000, RadioImage.CHANNEL_COUNT)
+        image.setChannel(999, Channel(146_520_000L, 146_520_000L, name = "LAST"))
+        assertEquals("LAST", image.channel(999)!!.name)
     }
 
     @Test

@@ -34,6 +34,13 @@ class WireCryptTest {
     }
 
     @Test
+    fun `key selection for the UV-5RM Plus message yields key 13`() {
+        // A different radio variant's SEND payload (taken from CHIRP's driver), independent of ours.
+        val payload = hex("13 0F 0D 13 0E 0E 0E 0D 0A 0E 0E 02 0F 08 04 11 0C 00 0D 0E 00")
+        assertEquals(13, WireCrypt.keyIndexFromSendPayload(payload))
+    }
+
+    @Test
     fun `key selection rejects out-of-range selectors`() {
         assertEquals(-1, WireCrypt.keyIndexFromSendPayload(hex("30 00 00 00 00 00 00 00 00 00 00")))
         assertEquals(-1, WireCrypt.keyIndexFromSendPayload(hex("21 05 0D 01 7F 01")))

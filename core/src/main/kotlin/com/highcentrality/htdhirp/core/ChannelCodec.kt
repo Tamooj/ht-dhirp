@@ -31,7 +31,8 @@ object ChannelCodec {
         require(!isEmpty(buf, off)) { "record at $off is empty" }
         val rx = Bcd.decodeLe(buf, off, 4)
             ?: throw IllegalArgumentException("record at $off: RX frequency is not valid BCD")
-        val txInhibited = (4..7).all { buf[off + it] == FF }
+        // The radio treats an all-FF or all-00 TX field as "no transmit".
+        val txInhibited = (4..7).all { buf[off + it] == FF } || (4..7).all { buf[off + it] == 0.toByte() }
         val tx = if (txInhibited) {
             null
         } else {
@@ -68,10 +69,12 @@ object ChannelCodec {
         if (cur == null) writeBlank(buf, off)
 
         Bcd.encodeLe(ch.rxHz / 10, buf, off, 4)
-        if (ch.txHz == null) {
-            for (i in 4..7) buf[off + i] = FF
-        } else {
-            Bcd.encodeLe(ch.txHz / 10, buf, off + 4, 4)
+        if (cur == null || cur.txHz != ch.txHz) {
+            if (ch.txHz == null) {
+                for (i in 4..7) buf[off + i] = FF
+            } else {
+                Bcd.encodeLe(ch.txHz / 10, buf, off + 4, 4)
+            }
         }
         if (cur == null || cur.rxTone != ch.rxTone) putU16(buf, off + 8, ToneCodec.encode(ch.rxTone))
         if (cur == null || cur.txTone != ch.txTone) putU16(buf, off + 10, ToneCodec.encode(ch.txTone))
@@ -111,15 +114,14 @@ object ChannelCodec {
         val sb = StringBuilder()
         for (i in 0 until NAME_LENGTH) {
             val b = u8(buf, off + i)
-            if (b == 0xFF || b == 0x00) break
-            sb.append(if (b in 0x20..0x7E) b.toChar() else '?')
+            sb.append(if (b == 0xFF || b == 0x00) ' ' else if (b in 0x20..0x7E) b.toChar() else '?')
         }
         return sb.toString().trimEnd()
     }
 
     private fun encodeName(buf: ByteArray, off: Int, name: String) {
         val n = name.take(NAME_LENGTH)
-        require(n.all { it.code in 0x20..0x7E }) { "name must be printable ASCII: '$name'" }
+        require(n.all(ChannelName::isValidChar)) { "name has characters the radio cannot show: '$name'" }
         for (i in 0 until NAME_LENGTH) buf[off + i] = if (i < n.length) n[i].code.toByte() else FF
     }
 

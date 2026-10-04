@@ -41,7 +41,9 @@ Needs JDK 17 or newer (JDK 25 also works; the Kotlin target is pinned to 17). Th
 
 The APK lands in `app/build/outputs/apk/debug/`. The phone's one USB-C port is busy with the programming cable, so install either by copying the APK to the phone, or over Wi-Fi with Android's *Wireless debugging* (`adb pair`, `adb connect`, then `adb install -r app-debug.apk`).
 
-Safety before testing: radio on, plug seated fully, antenna off or a dummy load attached (a radio can key its transmitter if communication goes wrong).
+**Debug log.** Every connect records a timestamped log of all bytes sent and received, with how long each reply took, and flags timeouts and short reads. It is saved to Downloads automatically after a read or a failure (`ht-dhirp_comm_*.log`), or on demand with *Save debug log*. Payloads are truncated to 16 bytes per line by default so a shared log doesn't contain your whole channel list. The same `CommLog`/`LoggingTransport` wraps any transport, so it also works in tests and desktop tools.
+
+Safety before testing: radio off, plug seated fully, then radio on; antenna off or a dummy load attached (a radio can key its transmitter if communication goes wrong).
 
 ## Fixtures
 

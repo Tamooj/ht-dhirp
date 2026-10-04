@@ -21,6 +21,8 @@ import android.widget.ScrollView
 import android.widget.TextView
 import com.highcentrality.htdhirp.core.ChirpImageFile
 import com.highcentrality.htdhirp.core.CloneSession
+import com.highcentrality.htdhirp.core.CommLog
+import com.highcentrality.htdhirp.core.LoggingTransport
 import com.highcentrality.htdhirp.core.ProtocolException
 import com.highcentrality.htdhirp.core.RadioImage
 import com.hoho.android.usbserial.driver.UsbSerialPort
@@ -44,6 +46,7 @@ class SpikeActivity : Activity() {
 
     private var port: UsbSerialPort? = null
     private var session: CloneSession? = null
+    private var commLog: CommLog? = null
 
     private val permissionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -88,9 +91,9 @@ class SpikeActivity : Activity() {
             setPadding(pad, pad, pad, pad)
         }
         root.addView(TextView(this).apply {
-            text = "Before you start: radio ON, cable plugged in fully, antenna OFF or dummy load " +
-                "connected (a radio can key its transmitter if communication goes wrong). " +
-                "This spike only reads the radio."
+            text = "Before you start: turn the radio OFF, plug the cable in fully, then turn the radio ON. " +
+                "Antenna OFF or a dummy load connected (a radio can key its transmitter if " +
+                "communication goes wrong). This spike only reads the radio."
             textSize = 14f
         })
         val buttons = LinearLayout(this).apply {
@@ -106,6 +109,10 @@ class SpikeActivity : Activity() {
             setOnClickListener { io.execute { readRadio() } }
         })
         root.addView(buttons)
+        root.addView(Button(this).apply {
+            text = "Save debug log"
+            setOnClickListener { io.execute { saveLog("manual") } }
+        })
         logView = TextView(this).apply {
             typeface = Typeface.MONOSPACE
             textSize = 12f
@@ -154,7 +161,13 @@ class SpikeActivity : Activity() {
             port = p
             say("Port open at $BAUD 8N1 (${driver.javaClass.simpleName}). Handshaking...")
 
-            val s = CloneSession(UsbSerialTransport(p), timeoutMs = 1500)
+            val log = CommLog()
+            log.header("ht-dhirp spike 0.0.1")
+            log.header("Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT}), ${Build.MANUFACTURER} ${Build.MODEL}")
+            log.header("USB ${describe(driver.device)} via ${driver.javaClass.simpleName}, $BAUD 8N1")
+            commLog = log
+
+            val s = CloneSession(LoggingTransport(UsbSerialTransport(p), log), timeoutMs = 1500, log = log)
             val info = s.handshake()
             session = s
             say("Handshake OK.")
@@ -163,6 +176,8 @@ class SpikeActivity : Activity() {
             say("  key index:   ${s.keyIndex}")
         } catch (e: Exception) {
             say("ERROR during connect: ${e.message ?: e.javaClass.simpleName}")
+            commLog?.note("ERROR during connect: ${e.javaClass.simpleName}: ${e.message}")
+            saveLog("connect-failed")
             closePort()
         }
     }
@@ -191,23 +206,42 @@ class SpikeActivity : Activity() {
                     "  #%d %-12s %.4f MHz".format(slot + 1, ch.name, ch.rxHz / 1e6))
             }
 
-            val name = "ht-dhirp_uv5rm_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.img"
+            val name = "ht-dhirp_uv5rm_${stamp()}.img"
             saveToDownloads(name, ChirpImageFile.create(data, METADATA_JSON).serialize())
             say("Saved Downloads/$name")
             say("Compare it with a read of the same radio made by desktop CHIRP. (If CHIRP will not open this file, tell us.)")
+            commLog?.let { say("--- communication summary ---"); say(it.summary()) }
+            saveLog("read-ok")
         } catch (e: ProtocolException) {
             say("PROTOCOL ERROR: ${e.message}")
+            commLog?.note("PROTOCOL ERROR: ${e.message}")
+            saveLog("read-failed")
             closePort()
         } catch (e: Exception) {
             say("ERROR during read: ${e.message ?: e.javaClass.simpleName}")
+            commLog?.note("ERROR during read: ${e.javaClass.simpleName}: ${e.message}")
+            saveLog("read-failed")
             closePort()
         }
     }
 
-    private fun saveToDownloads(name: String, bytes: ByteArray) {
+    private fun saveLog(reason: String) {
+        val log = commLog ?: return say("No communication yet; nothing to save.")
+        try {
+            val name = "ht-dhirp_comm_${stamp()}_$reason.log"
+            saveToDownloads(name, log.toText().toByteArray(Charsets.UTF_8), "text/plain")
+            say("Saved debug log: Downloads/$name")
+        } catch (e: Exception) {
+            say("Could not save the debug log: ${e.message}")
+        }
+    }
+
+    private fun stamp() = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+
+    private fun saveToDownloads(name: String, bytes: ByteArray, mime: String = "application/octet-stream") {
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, name)
-            put(MediaStore.Downloads.MIME_TYPE, "application/octet-stream")
+            put(MediaStore.Downloads.MIME_TYPE, mime)
             put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
         }
         val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)

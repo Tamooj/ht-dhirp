@@ -25,6 +25,32 @@ class CloneSessionTest {
         assertEquals(1, session.keyIndex)
         assertEquals(16, info.info.size)
         assertEquals(15, info.model.size)
+        assertEquals(0x06.toByte(), info.keySelectAck)
+    }
+
+    @Test
+    fun `an odd reply to key selection is reported but not fatal`() {
+        val radio = FakeRadio()
+        var sawSend = false
+        val wrapper = object : SerialTransport {
+            override fun write(data: ByteArray) {
+                sawSend = data.size == 25 && data[0] == 'S'.code.toByte()
+                radio.write(data)
+            }
+
+            override fun read(count: Int, timeoutMs: Long): ByteArray {
+                val r = radio.read(count, timeoutMs)
+                if (sawSend) {
+                    sawSend = false
+                    return byteArrayOf(0x15)
+                }
+                return r
+            }
+
+            override fun discardInput() = radio.discardInput()
+        }
+        val info = CloneSession(wrapper).handshake()
+        assertEquals(0x15.toByte(), info.keySelectAck)
     }
 
     @Test

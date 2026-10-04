@@ -3,9 +3,29 @@ package com.highcentrality.htdhirp.core
 // Handshake and block protocol as documented by CHIRP's baofeng_uv17Pro.py (https://chirpmyradio.com, GPLv3) and
 // verified with an independent Go tool. No CHIRP source is copied.
 /** Identification bytes the radio returns during the handshake. */
-data class DeviceInfo(val info: ByteArray, val model: ByteArray) {
+data class DeviceInfo(val info: ByteArray, val model: ByteArray, val keySelectAck: Byte) {
     val infoHex: String get() = info.joinToString(" ") { "%02X".format(it) }
     val modelText: String get() = String(model, Charsets.ISO_8859_1)
+}
+
+/**
+ * What differs between radios that share this protocol: the ident string and the key-selection
+ * message. Other models in the family (e.g. the UV-5RM Plus) use different ones, so never assume.
+ */
+class RadioVariant(val name: String, val ident: ByteArray, val keySelect: ByteArray) {
+    companion object {
+        private fun ascii(s: String) = s.toByteArray(Charsets.US_ASCII)
+
+        /** Confirmed on hardware with the owner's UV-5RM. */
+        val UV5RM = RadioVariant(
+            "Baofeng UV-5RM",
+            ascii("PROGRAMBFNORMALU"),
+            ascii("SEND") + intArrayOf(
+                0x21, 0x05, 0x0D, 0x01, 0x01, 0x01, 0x04, 0x11, 0x08, 0x05, 0x0D,
+                0x0D, 0x01, 0x11, 0x0F, 0x09, 0x12, 0x09, 0x10, 0x04, 0x00,
+            ).map { it.toByte() }.toByteArray(),
+        )
+    }
 }
 
 /**
@@ -16,26 +36,35 @@ data class DeviceInfo(val info: ByteArray, val model: ByteArray) {
  */
 class CloneSession(
     private val io: SerialTransport,
-    private val timeoutMs: Long = 1000,
+    private val timeoutMs: Long = 1500,
+    private val variant: RadioVariant = RadioVariant.UV5RM,
+    private val log: CommLog? = null,
 ) {
     var keyIndex: Int = -1
         private set
 
     fun handshake(): DeviceInfo {
+        log?.note("handshake start (${variant.name})")
         io.discardInput()
-        expectAck("handshake", exchange(MAGIC_STRING, 1))
+        expectAck("handshake", exchange(variant.ident, 1))
+        log?.note("handshake: device info")
         val info = exchange(byteArrayOf('F'.code.toByte()), 16, "device info")
+        log?.note("handshake: model string")
         val model = exchange(byteArrayOf('M'.code.toByte()), 15, "model string")
-        expectAck("key selection", exchange(KEY_SELECT, 1))
-        keyIndex = WireCrypt.keyIndexFromSendPayload(KEY_SELECT.copyOfRange(4, KEY_SELECT.size))
+        log?.note("handshake: key selection")
+        // A reply is required, but its value isn't checked: CHIRP ignores it too, and some firmware may differ.
+        val keyAck = exchange(variant.keySelect, 1)[0]
+        keyIndex = WireCrypt.keyIndexFromSendPayload(variant.keySelect.copyOfRange(4, variant.keySelect.size))
         if (keyIndex < 0) throw ProtocolException("key selection produced no usable key index")
         io.discardInput()
-        return DeviceInfo(info, model)
+        log?.note("handshake done, key index $keyIndex")
+        return DeviceInfo(info, model, keyAck)
     }
 
     /** Reads one block and returns it decrypted. */
     fun readBlock(addr: Int): ByteArray {
         checkReady(addr)
+        log?.note("read block 0x%04X".format(addr))
         val res = exchange(byteArrayOf('R'.code.toByte(), (addr shr 8).toByte(), addr.toByte(), BLOCK.toByte()), 4 + BLOCK, "read 0x%04X".format(addr))
         if (res[0] != 'R'.code.toByte() || res[1] != (addr shr 8).toByte() || res[2] != addr.toByte()) {
             throw ProtocolException("read 0x%04X: unexpected header %s".format(addr, res.copyOf(4).joinToString(" ") { "%02X".format(it) }))
@@ -47,6 +76,7 @@ class CloneSession(
     fun writeBlock(addr: Int, plain: ByteArray) {
         checkReady(addr)
         require(plain.size == BLOCK) { "block must be $BLOCK bytes, got ${plain.size}" }
+        log?.note("write block 0x%04X".format(addr))
         val cmd = byteArrayOf('W'.code.toByte(), (addr shr 8).toByte(), addr.toByte(), BLOCK.toByte()) +
             WireCrypt.crypt(plain, keyIndex)
         expectAck("write 0x%04X".format(addr), exchange(cmd, 1))
@@ -109,12 +139,5 @@ class CloneSession(
     private companion object {
         const val BLOCK = Uv5rmMemory.BLOCK_SIZE
         const val ACK: Byte = 0x06
-        val MAGIC_STRING = "PROGRAMBFNORMALU".toByteArray(Charsets.US_ASCII)
-
-        /** "SEND" + 21 bytes selecting key index 1; copied from the working bfctrl.go. */
-        val KEY_SELECT: ByteArray = "SEND".toByteArray(Charsets.US_ASCII) + intArrayOf(
-            0x21, 0x05, 0x0D, 0x01, 0x01, 0x01, 0x04, 0x11, 0x08, 0x05, 0x0D,
-            0x0D, 0x01, 0x11, 0x0F, 0x09, 0x12, 0x09, 0x10, 0x04, 0x00,
-        ).map { it.toByte() }.toByteArray()
     }
 }
